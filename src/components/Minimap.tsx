@@ -1,7 +1,9 @@
 import { useGameStore } from '../stores/useGameStore';
 
-export const Minimap = () => {
-  const pPos = useGameStore(state => state.playerPosition);
+export const Minimap = ({ playerIndex = 0 }: { playerIndex?: number }) => {
+  const pPos = playerIndex === 0 ? useGameStore(state => state.playerPosition) : useGameStore(state => state.p2Position);
+  const p2Pos = playerIndex === 0 ? useGameStore(state => state.p2Position) : useGameStore(state => state.playerPosition);
+  const isCoop = useGameStore(state => state.isCoop);
   const obstacles = useGameStore(state => state.obstacles);
   const police = useGameStore(state => state.policePositions);
   const remotePlayers = useGameStore(state => state.remotePlayers);
@@ -48,10 +50,17 @@ export const Minimap = () => {
             }}
           />
         ))}
+        
+        {isCoop && (
+          <div 
+            className="absolute w-6 h-6 bg-pink-500 rounded-full shadow-[0_0_15px_rgba(236,72,153,1)] -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${p2Pos[0]}px`, top: `${p2Pos[2]}px` }}
+          />
+        )}
       </div>
       
       {/* Player in center */}
-      <div className="absolute left-1/2 top-1/2 w-6 h-6 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,1)] -translate-x-1/2 -translate-y-1/2" />
+      <div className={`absolute left-1/2 top-1/2 w-6 h-6 rounded-full shadow-[0_0_15px_rgba(34,211,238,1)] -translate-x-1/2 -translate-y-1/2 ${playerIndex === 0 ? 'bg-cyan-400' : 'bg-pink-500'}`} />
     </div>
   );
 };

@@ -49,6 +49,8 @@ export const Effects = () => {
   const colorAccel = useMemo(() => new Color('#00bbff'), []);
   const colorBrake = useMemo(() => new Color('#ff2200'), []);
   const colorDrift = useMemo(() => new Color('#888888'), []);
+  const colorExplosion = useMemo(() => new Color('#ff5500'), []);
+  const colorGlass = useMemo(() => new Color('#ddffff'), []);
 
   useEffect(() => {
     // Initialize all to invisible
@@ -88,9 +90,16 @@ export const Effects = () => {
           if (p.type === 2) {
              // Drift smoke gets larger as it dissipates
              dummy.scale.set(s * (2.0 - p.life), s * (2.0 - p.life), s * (2.0 - p.life));
+          } else if (p.type === 3) {
+             // Explosion expands quickly
+             const expS = s * (3.0 - p.life * 2.0) * 4.0;
+             dummy.scale.set(expS, expS, expS);
+          } else if (p.type === 4) {
+             // Glass shards
+             dummy.scale.set(s * 0.5, s * 0.5, s * 0.5);
           }
 
-          const c = p.type === 0 ? colorAccel : p.type === 1 ? colorBrake : colorDrift;
+          const c = p.type === 0 ? colorAccel : p.type === 1 ? colorBrake : p.type === 3 ? colorExplosion : p.type === 4 ? colorGlass : colorDrift;
           meshRef.current.setColorAt(i, c);
         }
         dummy.updateMatrix();

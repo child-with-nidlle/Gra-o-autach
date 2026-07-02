@@ -289,6 +289,129 @@ export const CarModelView = ({ model, colorFallback, customization }: { model: s
     );
   }
 
+  if (model === 'truck') {
+    return (
+      <group>
+        <SurrealAura color={col} />
+        {/* Truck Body */}
+        <mesh castShadow position={[0, 1.5, -1]}>
+          <boxGeometry args={[2.2, 2.5, 6]} />
+          <meshPhysicalMaterial {...baseMaterial} emissive={col} emissiveIntensity={0.1} />
+        </mesh>
+        {/* Truck Cabin */}
+        <mesh castShadow position={[0, 1.2, 2.5]}>
+          <boxGeometry args={[2.2, 2, 2]} />
+          <meshPhysicalMaterial color={detailCol} roughness={0.4} metalness={0.8} />
+        </mesh>
+        {/* Windows */}
+        <mesh castShadow position={[0, 1.8, 3.55]}>
+          <boxGeometry args={[2, 0.8, 0.1]} />
+          <meshPhysicalMaterial color="#ffffff" transmission={0.9} opacity={1} transparent roughness={0.05} ior={1.4} thickness={0.5} />
+        </mesh>
+        {hasDecals && <Stripes length={5.8} yOffset={2.76} zOffset={-1} detailColor={detailCol} />}
+        {/* Wheels */}
+        {[
+          [-1.2, 0.5, 2.5],
+          [1.2, 0.5, 2.5],
+          [-1.2, 0.5, -2.5],
+          [1.2, 0.5, -2.5],
+          [-1.2, 0.5, -1.0],
+          [1.2, 0.5, -1.0],
+        ].map((pos, idx) => (
+          <mesh key={idx} castShadow position={pos as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.5, 0.5, 0.6, 16]} />
+            <meshPhysicalMaterial color="#111" wireframe />
+          </mesh>
+        ))}
+      </group>
+    );
+  }
+
+  if (model === 'suv') {
+    return (
+      <group>
+        <SurrealAura color={col} />
+        {/* SUV Body */}
+        <mesh castShadow position={[0, 0.7, 0]}>
+          <boxGeometry args={[2.0, 1.2, 4.5]} />
+          <meshPhysicalMaterial {...baseMaterial} emissive={col} emissiveIntensity={0.1} />
+        </mesh>
+        {/* SUV Cabin */}
+        <mesh castShadow position={[0, 1.6, -0.5]}>
+          <boxGeometry args={[1.8, 0.8, 3.0]} />
+          <meshPhysicalMaterial color={detailCol} transmission={0.5} roughness={0.2} metalness={0.8} />
+        </mesh>
+        {/* Windows */}
+        <mesh castShadow position={[0, 1.6, 1.05]}>
+          <boxGeometry args={[1.7, 0.6, 0.1]} />
+          <meshPhysicalMaterial color="#111" transmission={0.9} opacity={1} transparent roughness={0.05} ior={1.4} thickness={0.5} />
+        </mesh>
+        {hasDecals && <Stripes length={2.8} yOffset={2.01} zOffset={-0.5} detailColor={detailCol} />}
+        {hasSpoiler && <Spoiler offset={[0, 2.0, -1.8]} detailColor={detailCol} />}
+        {/* Wheels */}
+        {[
+          [-1.1, 0.5, 1.5],
+          [1.1, 0.5, 1.5],
+          [-1.1, 0.5, -1.5],
+          [1.1, 0.5, -1.5],
+        ].map((pos, idx) => (
+          <mesh key={idx} castShadow position={pos as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.5, 0.5, 0.5, 20]} />
+            <meshPhysicalMaterial color="#111" wireframe />
+          </mesh>
+        ))}
+      </group>
+    );
+  }
+
+  if (model === 'sports') {
+    return (
+      <group>
+        <SurrealAura color={col} />
+        {/* Sports Body */}
+        <mesh castShadow position={[0, 0.35, 0]}>
+          <boxGeometry args={[2.1, 0.5, 4.6]} />
+          <meshPhysicalMaterial {...baseMaterial} emissive={col} emissiveIntensity={0.3} />
+        </mesh>
+        {/* Cabin */}
+        <mesh castShadow position={[0, 0.8, -0.2]}>
+          <boxGeometry args={[1.6, 0.5, 1.8]} />
+          <meshPhysicalMaterial color="#000" transmission={0.9} roughness={0.1} ior={1.5} />
+        </mesh>
+        {/* Wing */}
+        <mesh castShadow position={[0, 0.8, -2.1]}>
+          <boxGeometry args={[2.2, 0.1, 0.4]} />
+          <meshPhysicalMaterial color={detailCol} />
+        </mesh>
+        <mesh castShadow position={[-0.8, 0.6, -2.1]}>
+          <boxGeometry args={[0.1, 0.4, 0.3]} />
+          <meshPhysicalMaterial color={detailCol} />
+        </mesh>
+        <mesh castShadow position={[0.8, 0.6, -2.1]}>
+          <boxGeometry args={[0.1, 0.4, 0.3]} />
+          <meshPhysicalMaterial color={detailCol} />
+        </mesh>
+        {hasDecals && <Stripes length={4.4} yOffset={0.61} zOffset={0} detailColor={detailCol} />}
+        {/* Wheels */}
+        {[
+          [-1.1, 0.35, 1.5],
+          [1.1, 0.35, 1.5],
+          [-1.1, 0.35, -1.5],
+          [1.1, 0.35, -1.5],
+        ].map((pos, idx) => (
+          <mesh key={idx} castShadow position={pos as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.45, 0.45, 0.6, 24]} />
+            <meshPhysicalMaterial color="#111" />
+            <mesh position={[0, 0.31, 0]} rotation={[-Math.PI/2, 0, 0]}>
+              <circleGeometry args={[0.3, 16]} />
+              <meshStandardMaterial color={detailCol} emissive={detailCol} emissiveIntensity={1.5} />
+            </mesh>
+          </mesh>
+        ))}
+      </group>
+    );
+  }
+
   // Default blocky car
   return (
     <group>
@@ -342,12 +465,14 @@ export const CarModelView = ({ model, colorFallback, customization }: { model: s
 
 export const Car = ({ playerIndex = 0, isGhost = false }: { playerIndex?: number, isGhost?: boolean }) => {
   const carRef = useRef<Group>(null);
+  const carBodyRef = useRef<Group>(null);
   const keys = useKeyboard(playerIndex);
   
   // physics state
   const speed = useRef(0);
   const angle = useRef(0);
   const driftAngle = useRef(0);
+  const lastDriftTime = useRef(0);
 
   const cameraMode = useGameStore((state) => state.cameraMode);
   const upgrades = useGameStore((state) => state.upgrades);
@@ -364,16 +489,12 @@ export const Car = ({ playerIndex = 0, isGhost = false }: { playerIndex?: number
       prevCameraKey.current = keys.camera;
     }
 
-    // Ghost cars just interpolate or snap to their position from store
-    // Wait, the store is updated by the main Car. 
     if (isGhost) {
       const pos = playerIndex === 0 ? useGameStore.getState().playerPosition : useGameStore.getState().p2Position;
       const rot = playerIndex === 0 ? useGameStore.getState().playerRotation : useGameStore.getState().p2Rotation;
       
       carRef.current.position.set(pos[0], pos[1], pos[2]);
       carRef.current.rotation.y = rot;
-      
-      // We don't want ghost cameras running either, just early return!
       return;
     }
 
@@ -387,12 +508,25 @@ export const Car = ({ playerIndex = 0, isGhost = false }: { playerIndex?: number
       case 'bmw': maxSpeedMult = 1.4; accelMult = 1.4; handlingMult = 1.1; break;
       case 'ferrari': maxSpeedMult = 1.8; accelMult = 1.7; handlingMult = 1.2; break;
       case 'f1': maxSpeedMult = 2.3; accelMult = 2.2; handlingMult = 1.5; break;
+      case 'truck': maxSpeedMult = 0.9; accelMult = 0.8; handlingMult = 0.7; break;
+      case 'suv': maxSpeedMult = 1.2; accelMult = 1.1; handlingMult = 0.9; break;
+      case 'sports': maxSpeedMult = 1.6; accelMult = 1.5; handlingMult = 1.2; break;
     }
 
-    const acceleration = ((15 + upgrades.engine * 25) / 4) * accelMult;
-    const braking = 25 + upgrades.brakes * 15;
+    const gameMode = useGameStore.getState().gameMode;
+    const weather = useGameStore.getState().weather;
+    const weatherEnabled = useGameStore.getState().weatherEnabled;
+    let weatherFriction = 1.0;
+    
+    if (weatherEnabled) {
+      if (weather === 'rainy') weatherFriction = 0.6; // slippery
+      if (weather === 'foggy') weatherFriction = 0.8; 
+    }
+
+    const acceleration = ((15 + upgrades.engine * 25) / 4) * accelMult * (weatherFriction === 0.6 ? 0.8 : 1.0);
+    const braking = (25 + upgrades.brakes * 15) * weatherFriction;
     const maxSpeed = ((30 + upgrades.engine * 150) / 4) * maxSpeedMult;
-    const turnSpeed = (2.0 + upgrades.tires * 0.4) * handlingMult;
+    const turnSpeed = (2.0 + upgrades.tires * 0.4) * handlingMult * weatherFriction;
 
     const currentNitro = useGameStore.getState().nitroAmount;
     const isNitroActive = keys.nitro && currentNitro > 0 && keys.forward;
@@ -484,18 +618,57 @@ export const Car = ({ playerIndex = 0, isGhost = false }: { playerIndex?: number
       }
     }
 
+    let trafficCollided = false;
     // Traffic collision
     const tPos = useGameStore.getState().trafficPositions;
     for (const t of tPos) {
       if (Math.abs(t[0] - nextX) < 3.5 && Math.abs(t[2] - nextZ) < 3.5) {
         collided = true;
+        trafficCollided = true;
         break;
       }
     }
 
+    const isCoop = useGameStore.getState().isCoop;
+    const coopMode = useGameStore.getState().coopMode;
+    const otherPlayerPos = playerIndex === 0 ? useGameStore.getState().p2Position : useGameStore.getState().playerPosition;
+    
+    if (isCoop && Math.abs(otherPlayerPos[0] - nextX) < 3.5 && Math.abs(otherPlayerPos[2] - nextZ) < 3.5) {
+      if (coopMode === 'cops_vs_robbers') {
+         // Bust the robber (P1 is robber, P2 is cop)
+         // So if P2 touches P1, P1 gets busted
+         useGameStore.getState().setIsCaught(true);
+      } else {
+         collided = true;
+         trafficCollided = true;
+      }
+    }
+
     if (collided) {
-      // Bounce effect
+      // Bounce effect and deformation
+      const collisionSpeed = Math.abs(speed.current);
       speed.current = -speed.current * 0.3; 
+      
+      if (collisionSpeed > 5) {
+         if (carBodyRef.current) {
+            carBodyRef.current.scale.set(0.9, 0.8, 0.8); // Car crushes slightly
+            // Add a slight rotation to simulate broken suspension or crash offset
+            carBodyRef.current.rotation.z = (Math.random() - 0.5) * 0.1; 
+         }
+         
+         // Big explosion!
+         for (let i = 0; i < 20; i++) {
+            emitParticle([nextX, 1, nextZ], [(Math.random()-0.5)*40, Math.random()*30, (Math.random()-0.5)*40], 3); // fire
+         }
+         // Glass shards
+         for (let i = 0; i < 30; i++) {
+            emitParticle([nextX, 2, nextZ], [(Math.random()-0.5)*30, Math.random()*20, (Math.random()-0.5)*30], 4); // glass
+         }
+      }
+      
+      if (useGameStore.getState().driftCombo > 1) {
+         useGameStore.getState().setDriftCombo(1); // lose combo on crash
+      }
     } else {
       carRef.current.position.x = nextX;
       carRef.current.position.z = nextZ;
@@ -532,11 +705,29 @@ export const Car = ({ playerIndex = 0, isGhost = false }: { playerIndex?: number
          });
       }
 
-      // Drift Smoke (back wheels)
-      if (Math.abs(driftAngle.current) > 0.1 && Math.abs(speed.current) > 5) {
+      // Drift Smoke (back wheels) & Combo logic
+      const isDrifting = Math.abs(driftAngle.current) > 0.1 && Math.abs(speed.current) > 5;
+      
+      if (isDrifting) {
          [[-1, 1.2], [1, 1.2]].forEach(([ox, oz]) => {
            if (Math.random() < 0.8) emitParticle(getWorldPos(ox, oz), [(Math.random()-0.5)*5, 1, (Math.random()-0.5)*5], 2);
          });
+         
+         if (playerIndex === 0) {
+           if (state.clock.elapsedTime - lastDriftTime.current > 1.0) {
+              useGameStore.getState().setDriftCombo(useGameStore.getState().driftCombo + 1);
+              lastDriftTime.current = state.clock.elapsedTime;
+           }
+           if (Math.random() < 0.05 && gameMode === 'playground') {
+              useGameStore.getState().incrementScore(10 * useGameStore.getState().driftCombo);
+           }
+         }
+      } else {
+         if (state.clock.elapsedTime - lastDriftTime.current > 2.0) {
+            if (useGameStore.getState().driftCombo > 1) {
+               useGameStore.getState().setDriftCombo(1); // reset after 2s of no drift
+            }
+         }
       }
     }
 
@@ -583,10 +774,50 @@ export const Car = ({ playerIndex = 0, isGhost = false }: { playerIndex?: number
   const activeCustomization = playerIndex === 0 
     ? useGameStore((state) => state.customizations[state.activeCar])
     : useGameStore((state) => state.customizations[state.p2Car ?? 'mini']);
+  const coopMode = useGameStore((state) => state.coopMode);
+  const isCoopCop = playerIndex === 1 && coopMode === 'cops_vs_robbers';
+
+  useFrame((state) => {
+     if (isCoopCop && carBodyRef.current) {
+        // Find lights and make them blink
+        const t = state.clock.elapsedTime * 10;
+        const group = carBodyRef.current.children.find(c => c.name === 'policeLights');
+        if (group) {
+           const red = group.children[0] as THREE.Mesh;
+           const blue = group.children[1] as THREE.Mesh;
+           const lRed = group.children[2] as THREE.PointLight;
+           const lBlue = group.children[3] as THREE.PointLight;
+           
+           const rOn = Math.sin(t) > 0;
+           (red.material as THREE.MeshBasicMaterial).color.set(rOn ? '#ff0000' : '#440000');
+           lRed.intensity = rOn ? 3 : 0;
+           
+           const bOn = Math.sin(t + Math.PI) > 0;
+           (blue.material as THREE.MeshBasicMaterial).color.set(bOn ? '#0000ff' : '#000044');
+           lBlue.intensity = bOn ? 3 : 0;
+        }
+     }
+  });
 
   return (
     <group ref={carRef} position={playerIndex === 0 ? useGameStore.getState().playerPosition : useGameStore.getState().p2Position}>
-      <CarModelView model={activeCar} customization={activeCustomization} />
+      <group ref={carBodyRef}>
+        <CarModelView model={activeCar} customization={activeCustomization} />
+        {isCoopCop && (
+          <group position={[0, 1.8, 0]} name="policeLights">
+            <mesh position={[-0.4, 0, 0]}>
+              <boxGeometry args={[0.3, 0.2, 0.4]} />
+              <meshBasicMaterial color="#ff0000" />
+            </mesh>
+            <mesh position={[0.4, 0, 0]}>
+              <boxGeometry args={[0.3, 0.2, 0.4]} />
+              <meshBasicMaterial color="#0000ff" />
+            </mesh>
+            <pointLight position={[-0.4, 0.5, 0]} color="#ff0000" distance={10} intensity={2} />
+            <pointLight position={[0.4, 0.5, 0]} color="#0000ff" distance={10} intensity={2} />
+          </group>
+        )}
+      </group>
     </group>
   );
 };

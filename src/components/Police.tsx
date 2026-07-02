@@ -4,7 +4,7 @@ import { Group, Vector3, MeshStandardMaterial, Ray, Box3 } from 'three';
 import { useGameStore } from '../stores/useGameStore';
 import { SurrealAura } from './Car';
 
-const POLICE_COUNT = 5;
+const POLICE_COUNT = 40;
 
 export const Police = ({ isLogicHost = true }: { isLogicHost?: boolean }) => {
   const playerPosition = useGameStore((state) => state.playerPosition);
@@ -12,20 +12,30 @@ export const Police = ({ isLogicHost = true }: { isLogicHost?: boolean }) => {
   const isCoop = useGameStore((state) => state.isCoop);
   const obstacles = useGameStore((state) => state.obstacles);
   const setIsCaught = useGameStore((state) => state.setIsCaught);
+  const gameMode = useGameStore((state) => state.gameMode);
   
   // Create police state
   const policeData = useMemo(() => {
-    return Array.from({ length: POLICE_COUNT }).map((_, i) => ({
-      position: new Vector3((Math.random() - 0.5) * 800, 0, (Math.random() - 0.5) * 800),
-      speed: 0,
-      angle: i * Math.PI / 2,
-      target: new Vector3(),
-      lastKnownPos: new Vector3(),
-      hasLastKnownPos: false,
-      patrolTimer: 0,
-      isChasing: false,
-      patrolDest: new Vector3(),
-    }));
+    const xRoads = [-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700];
+    const zRoads = [-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700];
+
+    return Array.from({ length: POLICE_COUNT }).map((_, i) => {
+      const isVertical = Math.random() > 0.5;
+      const x = isVertical ? xRoads[Math.floor(Math.random() * xRoads.length)] : (Math.random() - 0.5) * 1400;
+      const z = !isVertical ? zRoads[Math.floor(Math.random() * zRoads.length)] : (Math.random() - 0.5) * 1400;
+
+      return {
+        position: new Vector3(x, 0, z),
+        speed: 0,
+        angle: i * Math.PI / 2,
+        target: new Vector3(),
+        lastKnownPos: new Vector3(),
+        hasLastKnownPos: false,
+        patrolTimer: 0,
+        isChasing: false,
+        patrolDest: new Vector3(),
+      };
+    });
   }, []);
 
   const policeRefs = useRef<(Group | null)[]>([]);
@@ -37,6 +47,8 @@ export const Police = ({ isLogicHost = true }: { isLogicHost?: boolean }) => {
   const hitPoint = useMemo(() => new Vector3(), []);
 
   useFrame((state, delta) => {
+    if (gameMode === 'playground') return;
+    
     const pPos = new Vector3(...playerPosition);
     const p2Pos = new Vector3(...p2Position);
     let caught = false;
@@ -48,7 +60,8 @@ export const Police = ({ isLogicHost = true }: { isLogicHost?: boolean }) => {
       if (!ref) return;
 
       const distToPlayer = pd.position.distanceTo(pPos);
-      const distToP2 = isCoop ? pd.position.distanceTo(p2Pos) : Infinity;
+      const coopMode = useGameStore.getState().coopMode;
+      const distToP2 = (isCoop && coopMode !== 'cops_vs_robbers') ? pd.position.distanceTo(p2Pos) : Infinity;
       
       const targetPos = distToP2 < distToPlayer ? p2Pos : pPos;
       const targetDist = Math.min(distToPlayer, distToP2);
@@ -109,13 +122,13 @@ export const Police = ({ isLogicHost = true }: { isLogicHost?: boolean }) => {
           pd.isChasing = false;
           if (pd.patrolTimer <= 0) {
             // Split up: send them to random places near current position, staying within city bounds
-            let destX = pd.position.x + (Math.random() - 0.5) * 150;
-            let destZ = pd.position.z + (Math.random() - 0.5) * 150;
+            let destX = pd.position.x + (Math.random() - 0.5) * 300;
+            let destZ = pd.position.z + (Math.random() - 0.5) * 300;
             
-            if (destX > 400) destX = 400;
-            if (destX < -400) destX = -400;
-            if (destZ > 400) destZ = 400;
-            if (destZ < -400) destZ = -400;
+            if (destX > 800) destX = 800;
+            if (destX < -800) destX = -800;
+            if (destZ > 800) destZ = 800;
+            if (destZ < -800) destZ = -800;
 
             pd.patrolDest.set(destX, 0, destZ);
             pd.patrolTimer = 3 + Math.random() * 4;
@@ -204,6 +217,8 @@ export const Police = ({ isLogicHost = true }: { isLogicHost?: boolean }) => {
       if (caught) setIsCaught(true);
     }
   });
+
+  if (gameMode === 'playground') return null;
 
   return (
     <>

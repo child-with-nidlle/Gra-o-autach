@@ -12,7 +12,7 @@ interface Upgrades {
   brakes: number;
 }
 
-export type CarModel = 'default' | 'mini' | 'bmw' | 'ferrari' | 'f1';
+export type CarModel = 'default' | 'mini' | 'bmw' | 'ferrari' | 'f1' | 'truck' | 'suv' | 'sports';
 
 export interface CarCustomization {
   color: string;
@@ -29,6 +29,9 @@ export const DEFAULT_CUSTOMIZATIONS: Record<CarModel, CarCustomization> = {
   bmw: { color: '#334155', detailColor: '#ffffff', hasSpoiler: false, hasDecals: false, ownsSpoiler: false, ownsDecals: false },
   ferrari: { color: '#dc2626', detailColor: '#ffffff', hasSpoiler: false, hasDecals: false, ownsSpoiler: false, ownsDecals: false },
   f1: { color: '#ef4444', detailColor: '#ffffff', hasSpoiler: false, hasDecals: false, ownsSpoiler: false, ownsDecals: false },
+  truck: { color: '#fbbf24', detailColor: '#000000', hasSpoiler: false, hasDecals: false, ownsSpoiler: false, ownsDecals: false },
+  suv: { color: '#4ade80', detailColor: '#ffffff', hasSpoiler: false, hasDecals: false, ownsSpoiler: false, ownsDecals: false },
+  sports: { color: '#a855f7', detailColor: '#ffffff', hasSpoiler: false, hasDecals: false, ownsSpoiler: false, ownsDecals: false },
 };
 
 export const CAR_PRICES: Record<CarModel, number> = {
@@ -37,6 +40,9 @@ export const CAR_PRICES: Record<CarModel, number> = {
   bmw: 15000,
   ferrari: 50000,
   f1: 100000,
+  truck: 25000,
+  suv: 20000,
+  sports: 35000,
 };
 
 export const MAP_SIZE = 800;
@@ -75,6 +81,16 @@ interface GameState {
   p2Speed: number;
   p2Position: [number, number, number];
   p2Rotation: number;
+  weather: 'sunny' | 'rainy' | 'foggy';
+  weatherEnabled: boolean;
+  gameMode: 'city' | 'playground';
+  coopMode: 'normal' | 'cops_vs_robbers';
+  driftCombo: number;
+  setWeather: (w: 'sunny' | 'rainy' | 'foggy') => void;
+  setWeatherEnabled: (e: boolean) => void;
+  setGameMode: (m: 'city' | 'playground') => void;
+  setCoopMode: (m: 'normal' | 'cops_vs_robbers') => void;
+  setDriftCombo: (combo: number) => void;
   toggleCoop: () => void;
   setP2Car: (model: CarModel) => void;
   setP2Speed: (speed: number) => void;
@@ -127,6 +143,16 @@ export const useGameStore = create<GameState>((set) => ({
   p2Speed: 0,
   p2Position: [4, 0, 0],
   p2Rotation: 0,
+  weather: 'sunny',
+  weatherEnabled: true,
+  gameMode: 'city',
+  coopMode: 'normal',
+  driftCombo: 1,
+  setWeather: (weather) => set({ weather }),
+  setWeatherEnabled: (weatherEnabled) => set({ weatherEnabled }),
+  setGameMode: (gameMode) => set({ gameMode }),
+  setCoopMode: (coopMode) => set({ coopMode }),
+  setDriftCombo: (driftCombo) => set({ driftCombo }),
   toggleCoop: () => set((state) => ({ isCoop: !state.isCoop })),
   setP2Car: (model) => set({ p2Car: model }),
   setP2Speed: (speed) => set({ p2Speed: speed }),

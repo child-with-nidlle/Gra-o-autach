@@ -19,7 +19,7 @@ console.warn = (...args) => {
   originalWarn(...args);
 };
 
-import { EffectComposer, Bloom, HueSaturation } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, HueSaturation, Vignette } from '@react-three/postprocessing';
 import { View } from '@react-three/drei';
 import { Car, CarModelView } from './components/Car';
 import { Effects } from './components/Effects';
@@ -47,11 +47,158 @@ const SceneContent = ({ isLogicHost = false, playerIndex = 0 }) => {
         </>
       )}
       <Effects />
-      <EffectComposer>
-        <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} />
-        <HueSaturation saturation={0.2} hue={0} />
+      <EffectComposer disableNormalPass>
+        <Bloom luminanceThreshold={0.5} mipmapBlur intensity={1.5} />
+        <HueSaturation saturation={0.3} hue={0} />
+        <Vignette eskil={false} offset={0.1} darkness={1.1} />
       </EffectComposer>
     </>
+  );
+};
+
+const CarShop = () => {
+  const ownedCars = useGameStore(state => state.ownedCars);
+  const activeCar = useGameStore(state => state.activeCar);
+  const p2Car = useGameStore(state => state.p2Car);
+  const score = useGameStore(state => state.score);
+  
+  return (
+    <div className="shrink-0 bg-slate-900/80 p-6 rounded-xl border border-white/10 flex flex-col gap-3 w-96 text-left h-64 overflow-y-auto snap-center">
+      <div className="text-[12px] uppercase tracking-[0.2em] text-cyan-300 font-bold mb-2 text-center">Salon Samochodowy</div>
+      
+      {(['default', 'mini', 'bmw', 'ferrari', 'f1', 'truck', 'suv', 'sports'] as const).map(model => {
+        const owned = ownedCars.includes(model);
+        const isActiveP1 = activeCar === model;
+        const isActiveP2 = p2Car === model;
+
+        return (
+          <div key={model} className="flex flex-col gap-1 w-full bg-slate-800 rounded p-2">
+            <div className="flex justify-between items-center w-full">
+               <span className="font-bold uppercase text-sm">{model}</span>
+               {!owned && <span className="text-yellow-400 font-mono text-sm">${model === 'f1' ? 100000 : model === 'ferrari' ? 50000 : model === 'sports' ? 35000 : model === 'truck' ? 25000 : model === 'suv' ? 20000 : model === 'bmw' ? 15000 : model === 'mini' ? 5000 : 0}</span>}
+            </div>
+            {owned ? (
+              <div className="flex gap-2 w-full mt-1">
+                <button 
+                  onClick={() => useGameStore.getState().setActiveCar(model)}
+                  className={`flex-1 py-1 text-xs font-bold rounded ${isActiveP1 ? 'bg-cyan-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                >
+                   {isActiveP1 ? 'P1: Aktywny' : 'Dla P1'}
+                </button>
+                <button 
+                  onClick={() => useGameStore.getState().setP2Car(model)}
+                  className={`flex-1 py-1 text-xs font-bold rounded ${isActiveP2 ? 'bg-rose-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                >
+                   {isActiveP2 ? 'P2: Aktywny' : 'Dla P2'}
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => useGameStore.getState().buyCar(model)}
+                disabled={score < (model === 'f1' ? 100000 : model === 'ferrari' ? 50000 : model === 'sports' ? 35000 : model === 'truck' ? 25000 : model === 'suv' ? 20000 : model === 'bmw' ? 15000 : model === 'mini' ? 5000 : 0)}
+                className="w-full py-1 text-xs font-bold rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 mt-1"
+              >
+                 Kup Samochód
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const CarTuning = () => {
+  const [tuningPlayerIndex, setTuningPlayerIndex] = useState(0);
+  const activeCar = useGameStore(state => state.activeCar);
+  const p2CarModel = useGameStore(state => state.p2Car) ?? 'mini';
+  const customizations = useGameStore(state => state.customizations);
+  const setCarColor = useGameStore(state => state.setCarColor);
+  const toggleCarPart = useGameStore(state => state.toggleCarPart);
+  const buyCarPart = useGameStore(state => state.buyCarPart);
+  const setCarDetailColor = useGameStore(state => state.setCarDetailColor);
+  const score = useGameStore(state => state.score);
+  const isCoop = useGameStore(state => state.isCoop);
+
+  const activeCarToTune = tuningPlayerIndex === 0 ? activeCar : p2CarModel;
+  const activeCust = customizations[activeCarToTune] || customizations['mini'];
+
+  const colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f43f5e', '#ffffff', '#000000', '#64748b', '#fb923c', '#14b8a6', '#db2777'];
+
+  return (
+    <div className="shrink-0 bg-slate-900/80 p-6 rounded-xl border border-white/10 flex flex-col gap-3 w-80 text-left snap-center h-[28rem] overflow-y-auto">
+      <div className="text-[12px] uppercase tracking-[0.2em] text-cyan-300 font-bold mb-2 text-center flex justify-between items-center">
+        <span>Tuning Wyglądu</span>
+        {isCoop && (
+          <div className="flex bg-slate-800 rounded-full p-1 border border-white/10">
+            <button 
+              onClick={() => setTuningPlayerIndex(0)}
+              className={`px-3 py-1 rounded-full text-[10px] transition-colors ${tuningPlayerIndex === 0 ? 'bg-cyan-500 text-black' : 'text-slate-400'}`}
+            >P1</button>
+            <button 
+              onClick={() => setTuningPlayerIndex(1)}
+              className={`px-3 py-1 rounded-full text-[10px] transition-colors ${tuningPlayerIndex === 1 ? 'bg-pink-500 text-black' : 'text-slate-400'}`}
+            >P2</button>
+          </div>
+        )}
+      </div>
+      
+      <div className="w-full h-32 bg-black/50 rounded-lg overflow-hidden relative mb-2 flex-shrink-0">
+        <Canvas camera={{ position: [3, 2, 4], fov: 40 }}>
+          <ambientLight intensity={1} />
+          <directionalLight position={[5, 5, 5]} intensity={1} castShadow />
+          <group rotation={[0,-Math.PI/4,0]}>
+            <CarModelView model={activeCarToTune} customization={activeCust} />
+          </group>
+        </Canvas>
+      </div>
+
+      <div className="grid grid-cols-6 gap-2 mb-2 flex-shrink-0">
+        {colors.map(c => (
+           <button 
+             key={c}
+             onClick={() => setCarColor(activeCarToTune, c)}
+             className={`w-full aspect-square rounded cursor-pointer border hover:scale-110 transition-transform ${activeCust.color === c ? 'border-white !scale-110 z-10 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
+             style={{ backgroundColor: c }}
+           />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-6 gap-2 mb-2 flex-shrink-0">
+        {colors.map(c => (
+           <button 
+             key={c}
+             onClick={() => setCarDetailColor(activeCarToTune, c)}
+             className={`w-full aspect-square rounded cursor-pointer border hover:scale-110 transition-transform ${activeCust.detailColor === c ? 'border-white !scale-110 z-10 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
+             style={{ backgroundColor: c }}
+           />
+        ))}
+      </div>
+
+      <button 
+        onClick={() => {
+          if (activeCust.ownsSpoiler) toggleCarPart(activeCarToTune, 'spoiler');
+          else buyCarPart(activeCarToTune, 'spoiler', 500);
+        }}
+        disabled={!activeCust.ownsSpoiler && score < 500}
+        className={`flex justify-between items-center gap-4 px-4 py-3 disabled:opacity-50 hover:bg-slate-700 rounded transition-colors ${activeCust.hasSpoiler ? 'bg-cyan-600' : 'bg-slate-800'}`}
+      >
+        <span className="font-bold">Spoiler</span>
+        <span className="text-yellow-400 font-mono text-sm">{activeCust.ownsSpoiler ? (activeCust.hasSpoiler ? 'Wyłącz' : 'Załóż') : '$500'}</span>
+      </button>
+
+      <button 
+        onClick={() => {
+          if (activeCust.ownsDecals) toggleCarPart(activeCarToTune, 'decals');
+          else buyCarPart(activeCarToTune, 'decals', 250);
+        }}
+        disabled={!activeCust.ownsDecals && score < 250}
+        className={`flex justify-between items-center gap-4 px-4 py-3 disabled:opacity-50 hover:bg-slate-700 rounded transition-colors ${activeCust.hasDecals ? 'bg-cyan-600' : 'bg-slate-800'}`}
+      >
+        <span className="font-bold">Naklejki</span>
+        <span className="text-yellow-400 font-mono text-sm">{activeCust.ownsDecals ? (activeCust.hasDecals ? 'Wyłącz' : 'Załóż') : '$250'}</span>
+      </button>
+    </div>
   );
 };
 
@@ -69,7 +216,12 @@ export default function App() {
   const isGracePeriod = useGameStore((state) => state.isGracePeriod);
   const activeCar = useGameStore((state) => state.activeCar);
   const isCoop = useGameStore((state) => state.isCoop);
+  const coopMode = useGameStore((state) => state.coopMode);
   const p2Speed = useGameStore((state) => state.p2Speed);
+  const gameMode = useGameStore((state) => state.gameMode);
+  const weather = useGameStore((state) => state.weather);
+  const weatherEnabled = useGameStore((state) => state.weatherEnabled);
+  const driftCombo = useGameStore((state) => state.driftCombo);
   const speedKmH = speed * 3.6;
   const p2SpeedKmH = p2Speed * 3.6;
 
@@ -224,135 +376,33 @@ export default function App() {
             </div>
 
             {/* Cars */}
-            <div className="shrink-0 bg-slate-900/80 p-6 rounded-xl border border-white/10 flex flex-col gap-3 w-96 text-left h-64 overflow-y-auto snap-center">
-              <div className="text-[12px] uppercase tracking-[0.2em] text-cyan-300 font-bold mb-2 text-center">Salon Samochodowy</div>
-              
-              {(['default', 'mini', 'bmw', 'ferrari', 'f1'] as const).map(model => {
-                const owned = useGameStore.getState().ownedCars.includes(model);
-                const isActiveP1 = useGameStore.getState().activeCar === model;
-                const isActiveP2 = useGameStore.getState().p2Car === model;
-
-                return (
-                  <div key={model} className="flex flex-col gap-1 w-full bg-slate-800 rounded p-2">
-                    <div className="flex justify-between items-center w-full">
-                       <span className="font-bold uppercase text-sm">{model}</span>
-                       {!owned && <span className="text-yellow-400 font-mono text-sm">${model === 'f1' ? 100000 : model === 'ferrari' ? 50000 : model === 'bmw' ? 15000 : model === 'mini' ? 5000 : 0}</span>}
-                    </div>
-                    {owned ? (
-                      <div className="flex gap-2 w-full mt-1">
-                        <button 
-                          onClick={() => useGameStore.getState().setActiveCar(model)}
-                          className={`flex-1 py-1 text-xs font-bold rounded ${isActiveP1 ? 'bg-cyan-600' : 'bg-slate-700 hover:bg-slate-600'}`}
-                        >
-                           {isActiveP1 ? 'P1: Aktywny' : 'Dla P1'}
-                        </button>
-                        <button 
-                          onClick={() => useGameStore.getState().setP2Car(model)}
-                          className={`flex-1 py-1 text-xs font-bold rounded ${isActiveP2 ? 'bg-rose-600' : 'bg-slate-700 hover:bg-slate-600'}`}
-                        >
-                           {isActiveP2 ? 'P2: Aktywny' : 'Dla P2'}
-                        </button>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={() => useGameStore.getState().buyCar(model)}
-                        disabled={score < (model === 'f1' ? 100000 : model === 'ferrari' ? 50000 : model === 'bmw' ? 15000 : model === 'mini' ? 5000 : 0)}
-                        className="w-full py-1 text-xs font-bold rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 mt-1"
-                      >
-                         Kup Samochód
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <CarShop />
 
             {/* Customization */}
-            {(() => {
-              const activeCust = useGameStore.getState().customizations[activeCar];
-              const setCarColor = useGameStore.getState().setCarColor;
-              const toggleCarPart = useGameStore.getState().toggleCarPart;
-              const buyCarPart = useGameStore.getState().buyCarPart;
-              const setCarDetailColor = useGameStore.getState().setCarDetailColor;
-
-              const colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f43f5e', '#ffffff', '#000000', '#64748b', '#fb923c', '#14b8a6', '#db2777'];
-
-              return (
-                <div className="shrink-0 bg-slate-900/80 p-6 rounded-xl border border-white/10 flex flex-col gap-3 w-80 text-left snap-center h-[28rem] overflow-y-auto">
-                  <div className="text-[12px] uppercase tracking-[0.2em] text-cyan-300 font-bold mb-2 text-center">Tuning Wyglądu</div>
-                  
-                  <div className="w-full h-32 bg-black/50 rounded-lg overflow-hidden relative mb-2 flex-shrink-0">
-                    <Canvas camera={{ position: [3, 2, 4], fov: 40 }}>
-                      <ambientLight intensity={0.5} />
-                      <directionalLight position={[5, 5, 5]} intensity={1} castShadow />
-                      <group rotation={[0,-Math.PI/4,0]}>
-                        <CarModelView model={activeCar} customization={activeCust} />
-                      </group>
-                    </Canvas>
-                  </div>
-
-                  <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 mt-2">Kolor Główny</div>
-                  <div className="grid grid-cols-6 gap-2 mb-2">
-                    {colors.map(c => (
-                       <button 
-                         key={c}
-                         onClick={() => setCarColor(activeCar, c)}
-                         className={`w-full aspect-square rounded cursor-pointer border hover:scale-110 transition-transform ${activeCust.color === c ? 'border-white !scale-110 z-10 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                         style={{ backgroundColor: c }}
-                       />
-                    ))}
-                  </div>
-
-                  <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 mt-2">Detale</div>
-                  <div className="grid grid-cols-6 gap-2 mb-4">
-                    {colors.map(c => (
-                       <button 
-                         key={c}
-                         onClick={() => setCarDetailColor(activeCar, c)}
-                         className={`w-full aspect-square rounded cursor-pointer border hover:scale-110 transition-transform ${activeCust.detailColor === c ? 'border-white !scale-110 z-10 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                         style={{ backgroundColor: c }}
-                       />
-                    ))}
-                  </div>
-
-                  <button 
-                    onClick={() => {
-                      if (activeCust.ownsSpoiler) toggleCarPart(activeCar, 'spoiler');
-                      else buyCarPart(activeCar, 'spoiler', 500);
-                    }}
-                    disabled={!activeCust.ownsSpoiler && score < 500}
-                    className={`flex justify-between items-center gap-4 px-4 py-3 disabled:opacity-50 hover:bg-slate-700 rounded transition-colors ${activeCust.hasSpoiler ? 'bg-cyan-600' : 'bg-slate-800'}`}
-                  >
-                    <span className="font-bold">Spoiler</span>
-                    <span className="text-yellow-400 font-mono">{activeCust.ownsSpoiler ? (activeCust.hasSpoiler ? 'Zdejmij' : 'Załóż') : '$500'}</span>
-                  </button>
-
-                  <button 
-                    onClick={() => {
-                      if (activeCust.ownsDecals) toggleCarPart(activeCar, 'decals');
-                      else buyCarPart(activeCar, 'decals', 250);
-                    }}
-                    disabled={!activeCust.ownsDecals && score < 250}
-                    className={`flex justify-between items-center gap-4 px-4 py-3 disabled:opacity-50 hover:bg-slate-700 rounded transition-colors ${activeCust.hasDecals ? 'bg-cyan-600' : 'bg-slate-800'}`}
-                  >
-                    <span className="font-bold">Naklejki</span>
-                    <span className="text-yellow-400 font-mono">{activeCust.ownsDecals ? (activeCust.hasDecals ? 'Zdejmij' : 'Załóż') : '$250'}</span>
-                  </button>
-                </div>
-              );
-            })()}
+            <CarTuning />
 
             </div>
 
-            <div className="flex gap-4 mt-8 w-full max-w-sm">
+            <div className="flex gap-4 mt-8 w-full max-w-sm flex-col md:flex-row">
               <button 
                 onClick={() => {
                   useGameStore.getState().toggleCoop();
                 }}
-                className={`px-4 py-4 font-black uppercase tracking-widest transition-colors flex-1 rounded-lg border-2 ${isCoop ? 'bg-cyan-900 border-cyan-400 text-white' : 'bg-transparent border-slate-600 text-slate-400'}`}
+                className={`px-4 py-4 font-black uppercase text-xs tracking-widest transition-colors flex-1 rounded-lg border-2 ${isCoop ? 'bg-cyan-900 border-cyan-400 text-white' : 'bg-transparent border-slate-600 text-slate-400'}`}
               >
                 {isCoop ? 'Co-op: ON' : 'Co-op: OFF'}
               </button>
+
+              {isCoop && (
+                <button 
+                  onClick={() => {
+                    useGameStore.getState().setCoopMode(coopMode === 'normal' ? 'cops_vs_robbers' : 'normal');
+                  }}
+                  className={`px-2 py-4 font-black uppercase text-xs tracking-widest transition-colors flex-1 rounded-lg border-2 ${coopMode === 'cops_vs_robbers' ? 'bg-rose-900 border-rose-400 text-white' : 'bg-slate-800 border-slate-600 text-slate-400'}`}
+                >
+                  {coopMode === 'cops_vs_robbers' ? 'Złodziej vs Policja' : 'Zwykły Co-op'}
+                </button>
+              )}
               
               <button 
                 onClick={() => {
@@ -371,6 +421,36 @@ export default function App() {
                 className="px-8 py-4 bg-cyan-500 text-black font-black uppercase tracking-widest hover:bg-cyan-400 transition-colors flex-2 rounded-lg"
               >
                 Start
+              </button>
+            </div>
+
+            <div className="flex gap-4 mt-4 w-full max-w-sm">
+               <button 
+                onClick={() => {
+                  useGameStore.getState().setGameMode(gameMode === 'city' ? 'playground' : 'city');
+                }}
+                className={`px-4 py-3 font-bold uppercase text-xs tracking-widest transition-colors flex-1 rounded border-2 ${gameMode === 'playground' ? 'bg-amber-900 border-amber-400 text-white' : 'bg-transparent border-slate-600 text-slate-400'}`}
+              >
+                {gameMode === 'playground' ? 'Zabawa: ON' : 'Zabawa: OFF'}
+              </button>
+
+              <button 
+                onClick={() => {
+                  const weatherList: ('sunny' | 'rainy' | 'foggy')[] = ['sunny', 'rainy', 'foggy'];
+                  useGameStore.getState().setWeather(weatherList[(weatherList.indexOf(weather) + 1) % weatherList.length]);
+                }}
+                className="px-4 py-3 bg-transparent border-2 border-slate-600 text-slate-400 font-bold uppercase text-xs tracking-widest hover:bg-slate-800 transition-colors flex-1 rounded"
+              >
+                Pogoda: {weather}
+              </button>
+              
+              <button 
+                onClick={() => {
+                  useGameStore.getState().setWeatherEnabled(!weatherEnabled);
+                }}
+                className={`px-4 py-3 font-bold uppercase text-xs tracking-widest transition-colors rounded border-2 ${weatherEnabled ? 'bg-blue-900 border-blue-400 text-white' : 'bg-transparent border-slate-600 text-slate-400'}`}
+              >
+                {weatherEnabled ? 'Efk.Pog: ON' : 'Efk.Pog: OFF'}
               </button>
             </div>
 
@@ -414,10 +494,25 @@ export default function App() {
       {/* Top HUD */}
       <div className="relative z-20 flex justify-between items-start p-6 md:p-10 pointer-events-none">
         <div className="flex flex-col gap-2">
-          {isGracePeriod && !isCaught && (
+          {isGracePeriod && !isCaught && gameMode === 'city' && (
             <div className="bg-emerald-500/80 backdrop-blur-md px-6 py-3 rounded-sm border-l-4 border-emerald-300 animate-pulse outline outline-4 outline-emerald-500/50">
               <div className="text-[10px] uppercase tracking-[0.2em] text-white font-bold">Fory goniących</div>
               <div className="text-xl md:text-3xl font-mono text-white">{Math.max(0, 12 - Math.floor(time / 1000))}s</div>
+            </div>
+          )}
+          {gameMode === 'playground' && (
+            <div className="bg-amber-500/80 backdrop-blur-md px-6 py-3 rounded-sm border-l-4 border-amber-300">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-white font-bold">Zabawa</div>
+              <div className="text-xl md:text-xl font-black text-white">PLAYGROUND</div>
+              <button 
+                onClick={() => {
+                  useGameStore.getState().setGameMode('city');
+                  useGameStore.getState().setIsCaught(true); // show menu
+                }}
+                className="mt-2 pointer-events-auto bg-black/50 hover:bg-black text-white px-2 py-1 text-xs font-bold rounded"
+              >
+                Wyjdź (Wróć do miasta)
+              </button>
             </div>
           )}
           <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-sm border-l-4 border-cyan-400">
@@ -431,6 +526,9 @@ export default function App() {
           </div>
           <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-sm text-sm">
             <span className="text-slate-400">PUNKTY:</span> <span className="font-mono text-yellow-400">{score}</span>
+            {driftCombo > 1 && (
+               <span className="ml-2 font-black text-rose-500 text-lg animate-pulse">x{driftCombo} DRIFT!</span>
+            )}
           </div>
         </div>
       </div>
@@ -438,14 +536,28 @@ export default function App() {
       {/* Bottom HUD: Dashboard Controls */}
       <div className="relative z-20 mt-auto flex justify-between items-end p-10 pointer-events-none">
         
-        {/* Minimap */}
-        <div className="w-48 h-48 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 p-4 relative overflow-hidden hidden md:block">
-          <div className="absolute inset-0 flex items-center justify-center opacity-20">
-            {/* simple grid background for minimap */}
-            <div className="w-full h-full bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:10%_10%]"></div>
+        {/* Minimaps */}
+        <div className="flex gap-4">
+          <div className="w-48 h-48 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 p-4 relative overflow-hidden hidden md:block">
+            <div className="absolute inset-0 flex items-center justify-center opacity-20">
+              {/* simple grid background for minimap */}
+              <div className="w-full h-full bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:10%_10%]"></div>
+            </div>
+            <Minimap playerIndex={0} />
+            <div className="absolute inset-0 border-t-2 border-cyan-400/30 rounded-full"></div>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] uppercase font-bold text-cyan-400 tracking-widest">P1</div>
           </div>
-          <Minimap />
-          <div className="absolute inset-0 border-t-2 border-cyan-400/30 rounded-full"></div>
+
+          {isCoop && (
+            <div className="w-48 h-48 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 p-4 relative overflow-hidden hidden md:block">
+              <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <div className="w-full h-full bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:10%_10%]"></div>
+              </div>
+              <Minimap playerIndex={1} />
+              <div className="absolute inset-0 border-t-2 border-pink-500/30 rounded-full"></div>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] uppercase font-bold text-pink-500 tracking-widest">P2</div>
+            </div>
+          )}
         </div>
 
         {/* Digital Speedometer */}
